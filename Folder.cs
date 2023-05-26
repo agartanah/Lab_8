@@ -2,10 +2,8 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Lab8 {
+namespace Lab_8 {
   public class Folder {
     public string FolderPath { get; set; }
     public DirectoryInfo FolderInfo { get; set; }
@@ -47,9 +45,9 @@ namespace Lab8 {
             }
           } else {
             File.Copy(FolderFile.FullName, FolderSyncFilePath);
+
             Sync = true;
           }
-
           
           foreach (var FolderSyncFile in FolderSyncFiles) {
             if (!File.Exists(FolderInfo.FullName + @"\" + FolderSyncFile.Name)) {
