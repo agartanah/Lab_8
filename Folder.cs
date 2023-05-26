@@ -14,10 +14,10 @@ namespace Lab8 {
     public Folder(string FolderPath) {
       this.FolderPath = FolderPath;
       FolderInfo = new DirectoryInfo(FolderPath);
-      FolderFiles = ReadFolderFiles(FolderPath);
+      FolderFiles = ReadFolderFiles(FolderInfo);
     }
 
-    public List<FileInfo> ReadFolderFiles(string FolderPath) {
+    public List<FileInfo> ReadFolderFiles(DirectoryInfo FolderInfo) {
       List<FileInfo> Files = new List<FileInfo>();
 
       FileInfo[] FolderFilesArray = FolderInfo.GetFiles();
@@ -27,6 +27,47 @@ namespace Lab8 {
       }
 
       return Files;
+    }
+
+    public bool SynchronizationWithFolder(DirectoryInfo FolderSync) {
+      List<FileInfo> FolderSyncFiles = ReadFolderFiles(FolderSync);
+      bool Sync = false;
+
+      if (FolderFiles.Count != 0) {
+        foreach (var FolderFile in FolderFiles) {
+          string FolderSyncFilePath = FolderSync.FullName + @"\" + FolderFile.Name;
+
+          if (File.Exists(FolderSyncFilePath)) {
+            if (!Enumerable.SequenceEqual(File.ReadAllBytes(FolderFile.FullName), File.ReadAllBytes(FolderSyncFilePath))) {
+              File.Delete(FolderFile.FullName);
+              File.Copy(FolderSyncFilePath, FolderFile.FullName);
+
+              Sync = true;
+              continue;
+            }
+          } else {
+            File.Copy(FolderFile.FullName, FolderSyncFilePath);
+            Sync = true;
+          }
+
+          
+          foreach (var FolderSyncFile in FolderSyncFiles) {
+            if (!File.Exists(FolderInfo.FullName + @"\" + FolderSyncFile.Name)) {
+              File.Copy(FolderSyncFile.FullName, (FolderInfo.FullName + @"\" + FolderSyncFile.Name));
+
+              Sync = true;
+            }
+          }
+        }
+      } else if (FolderSyncFiles.Count != 0) {
+        foreach (var FolderSyncFile in FolderSyncFiles) {
+          File.Copy(FolderSyncFile.FullName, (FolderInfo.FullName + @"\" + FolderSyncFile.Name));
+
+          Sync = true;
+        }
+      }
+
+      return Sync;
     }
 
     public void PrintFolderFiles() {
