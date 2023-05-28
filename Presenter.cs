@@ -15,14 +15,81 @@ namespace Lab_8 {
       Folder FolderBase = new Folder(FolderBasePath);
       Folder FolderSync = new Folder(FolderSyncPath);
 
-      return FolderBase.SynchronizationWithFolder(FolderSync.FolderInfo);
+      if (session.ChildNodes.Count == 0) {
+        bool Success = FolderBase.SynchronizationWithFolder(FolderSync.FolderInfo);
+
+        FolderBase = new Folder(FolderBasePath);
+        FolderSync = new Folder(FolderSyncPath);
+
+        FoldersToXml(FolderBase, FolderSync);
+        return Success;
+      }
+
+      return AcceptWithXml(FolderBasePath, FolderSyncPath);
+    }
+
+    private static void FoldersToXml(Folder FolderBase, Folder FolderSync) {
+      string FileStatus = "sync";
+
+      foreach (var FolderFile in FolderBase.FolderFiles) {
+        AddXmlLog(FolderFile.FullName, FileStatus, FolderSync.FolderPath);
+      }
+
+      foreach (var FolderFile in FolderSync.FolderFiles) {
+        AddXmlLog(FolderFile.FullName, FileStatus, FolderBase.FolderPath);
+      }
     }
 
     public static bool AcceptWithXml(string FolderBasePath, string FolderSyncPath) {
-      if (XmlFile == null) {
+      Folder FolderBase = new Folder(FolderBasePath);
+      Folder FolderSync = new Folder(FolderSyncPath);
+      bool Succsess = false;
 
+      foreach (var FileElement in files) {
+        if (FileElement.GetAttribute("Status") != "sync") {
+          Succsess = FolderBase.SynchronizationWithFolder(FolderSync.FolderInfo);
+          FileElement.SetAttribute("Status", "sync");
+          FoldersToXml(FolderBase, FolderSync);
+        }
       }
-      return false;
+
+      //foreach (var FolderFile in FolderBase.FolderFiles) {
+      //  Console.WriteLine(FolderFile.FullName);
+      //  foreach (var FileElement in files) {
+      //    Console.WriteLine(FileElement.GetAttribute("Path"));
+      //    Console.WriteLine(FileElement.GetAttribute("Status"));
+      //    Console.WriteLine((FileElement.GetAttribute("Status") != "sync"));
+      //    if (FolderFile.FullName == FileElement.GetAttribute("Path") && FileElement.GetAttribute("Status") != "sync") {
+      //      FileElement.SetAttribute("Status", "sync");
+
+      //      Succsess = FolderBase.SynchronizationWithFolder(FolderSync.FolderInfo);
+
+      //      FoldersToXml(FolderBase, FolderSync);
+
+      //      return Succsess;
+      //    }
+      //  }
+      //}
+
+      //foreach (var FolderFile in FolderSync.FolderFiles) {
+      //  Console.WriteLine(FolderFile.FullName);
+      //  foreach (var FileElement in files) {
+      //    Console.WriteLine(FileElement.GetAttribute("Path"));
+      //    Console.WriteLine(FileElement.GetAttribute("Status"));
+      //    Console.WriteLine((FileElement.GetAttribute("Status") != "sync"));
+      //    if (FolderFile.FullName == FileElement.GetAttribute("Path") && (FileElement.GetAttribute("Status") != "sync")) {
+      //      FileElement.SetAttribute("Status", "sync");
+
+      //      Succsess = FolderSync.SynchronizationWithFolder(FolderBase.FolderInfo);
+
+      //      FoldersToXml(FolderSync, FolderBase);
+
+      //      return Succsess;
+      //    }
+      //  }
+      //}
+
+      return Succsess;
     }
 
     public static bool Create(string FilePath) {
@@ -53,7 +120,7 @@ namespace Lab_8 {
       }
     }
 
-    public static void AddXmlLog(string FilePath, string FileStatus) {
+    public static void AddXmlLog(string FilePath, string FileStatus, string FolderSyncPath = "none") {
       FileInfo File = new FileInfo(FilePath);
 
       foreach (var FileElement in files) {
@@ -75,7 +142,7 @@ namespace Lab_8 {
         }
       }
 
-      XmlElement FolderFiles = AddXmlFolder(File, FileStatus);
+      XmlElement FolderFiles = AddXmlFolder(File, FileStatus, FolderSyncPath);
       folders.Add(FolderFiles);
 
       XmlElement FolderFile = AddXmlFile(FolderFiles, File, FileStatus);
@@ -84,10 +151,10 @@ namespace Lab_8 {
       XmlFile.Save(XmlFilePath);
     }
 
-    private static XmlElement AddXmlFolder(FileInfo File, string FileStatus) {
+    private static XmlElement AddXmlFolder(FileInfo File, string FileStatus, string FolderSyncPath) {
       XmlElement FolderFiles = XmlFile.CreateElement("Folder");
       FolderFiles.SetAttribute("Path", File.Directory.FullName);
-      FolderFiles.SetAttribute("FolderSync", "none");
+      FolderFiles.SetAttribute("FolderSync", FolderSyncPath);
       session.AppendChild(FolderFiles);
 
       return FolderFiles;
