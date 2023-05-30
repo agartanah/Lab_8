@@ -1,16 +1,22 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
 namespace Lab_8 {
   
   public static class Presenter {
     public static string XmlFilePath = Path.Combine(Environment.CurrentDirectory, @"logs\StatusSync.xml");
+    public static string JsonFilePath = @"C:\Users\vyati\source\repos\Lab_8\bin\Debug\logs\StatusSync.json";/*Path.Combine(Environment.CurrentDirectory, @"logs\StatusSync.json");*/
     public static XmlDocument XmlFile;
+    public static JArray JsonFile;
+    private static List<string> filesJson = new List<string>();
+    private static List<string> foldersJson = new List<string>();
     private static XmlElement session;
-    private static List<XmlElement> files = new List<XmlElement>();
-    private static List<XmlElement> folders = new List<XmlElement>();
+    private static List<XmlElement> filesXml = new List<XmlElement>();
+    private static List<XmlElement> foldersXml = new List<XmlElement>();
     public static bool Accept(string FolderBasePath, string FolderSyncPath) {
       Folder FolderBase = new Folder(FolderBasePath);
       Folder FolderSync = new Folder(FolderSyncPath);
@@ -45,7 +51,7 @@ namespace Lab_8 {
       Folder FolderSync = new Folder(FolderSyncPath);
       bool Succsess = false;
 
-      foreach (var FileElement in files) {
+      foreach (var FileElement in filesXml) {
         if (FileElement.GetAttribute("Status") != "sync") {
           Succsess = FolderBase.SynchronizationWithFolder(FolderSync.FolderInfo);
           FileElement.SetAttribute("Status", "sync");
@@ -98,6 +104,7 @@ namespace Lab_8 {
 
         string FileStatus = "create";
 
+        AddJsonLog(FilePath, FileStatus);
         AddXmlLog(FilePath, FileStatus);
 
         return true;
@@ -112,6 +119,7 @@ namespace Lab_8 {
 
         string FileStatus = "del";
 
+        AddJsonLog(FilePath, FileStatus);
         AddXmlLog(FilePath, FileStatus);
 
         return true;
@@ -123,7 +131,7 @@ namespace Lab_8 {
     public static void AddXmlLog(string FilePath, string FileStatus, string FolderSyncPath = "none") {
       FileInfo File = new FileInfo(FilePath);
 
-      foreach (var FileElement in files) {
+      foreach (var FileElement in filesXml) {
         if (FileElement.GetAttribute("Path") == FilePath) {
           FileElement.SetAttribute("Status", FileStatus);
 
@@ -132,10 +140,10 @@ namespace Lab_8 {
         }
       }
 
-      foreach (var FolderElement in folders) {
+      foreach (var FolderElement in foldersXml) {
         if (FolderElement.GetAttribute("Path") == File.Directory.FullName) {
           XmlElement FileElement = AddXmlFile(FolderElement, File, FileStatus);
-          files.Add(FileElement);
+          filesXml.Add(FileElement);
 
           XmlFile.Save(XmlFilePath);
           return;
@@ -143,10 +151,10 @@ namespace Lab_8 {
       }
 
       XmlElement FolderFiles = AddXmlFolder(File, FileStatus, FolderSyncPath);
-      folders.Add(FolderFiles);
+      foldersXml.Add(FolderFiles);
 
       XmlElement FolderFile = AddXmlFile(FolderFiles, File, FileStatus);
-      files.Add(FolderFile);
+      filesXml.Add(FolderFile);
 
       XmlFile.Save(XmlFilePath);
     }
@@ -180,6 +188,92 @@ namespace Lab_8 {
       XmlFile.AppendChild(session);
 
       XmlFile.Save(XmlFilePath);
+    }
+
+    public static void AddJsonLog(string FilePath, string FileStatus, string FolderSyncPath = "none") {
+      FileInfo FolderFile = new FileInfo(FilePath);
+
+      foreach (var FolderElement in JsonFile) {
+        foreach (var FileElement in FolderElement["files"]) {
+          if (FileElement.Path == "path" && FileElement["path"].ToString() == FilePath) {
+            FileElement["status"] = FileStatus;
+
+            File.WriteAllText(JsonFilePath, JsonFile.ToString());
+            return;
+          }
+        }
+      }
+
+      foreach (var FolderElement in JsonFile) {
+        if (FolderElement["path"].ToString() == FolderFile.Directory.FullName) {
+          JObject FileJObject = new JObject();
+          FileJObject["path"] = FilePath;
+          FileJObject["name"] = FolderFile.Name;
+          FileJObject["status"] = FileStatus;
+
+          JArray Files = (JArray)FolderElement["files"];
+
+          Files.Add(FileJObject);
+
+          File.WriteAllText(JsonFilePath, JsonFile.ToString());
+          return;
+        }
+      }
+
+      JObject FolderObject = new JObject();
+      FolderObject["path"] = FolderFile.Directory.FullName;
+      FolderObject["foldersync"] = FolderSyncPath;
+
+      JArray FolderFiles = new JArray();
+      FolderObject["files"] = FolderFiles;
+
+      JsonFile.Add(FolderObject);
+
+      JObject FileObject = new JObject();
+      FileObject["path"] = FilePath;
+      FileObject["name"] = FolderFile.Name;
+      FileObject["status"] = FileStatus;
+
+      FolderFiles.Add(FileObject);
+
+      Console.WriteLine(JsonFilePath);
+
+      File.WriteAllText(JsonFilePath, JsonFile.ToString());
+
+      //foreach (var FileElement in files) {
+      //  if (FileElement.GetAttribute("Path") == FilePath) {
+      //    FileElement.SetAttribute("Status", FileStatus);
+
+      //    XmlFile.Save(XmlFilePath);
+      //    return;
+      //  }
+      //}
+
+      //foreach (var FolderElement in folders) {
+      //  if (FolderElement.GetAttribute("Path") == File.Directory.FullName) {
+      //    XmlElement FileElement = AddXmlFile(FolderElement, File, FileStatus);
+      //    files.Add(FileElement);
+
+      //    XmlFile.Save(XmlFilePath);
+      //    return;
+      //  }
+      //}
+
+      //XmlElement FolderFiles = AddXmlFolder(File, FileStatus, FolderSyncPath);
+      //folders.Add(FolderFiles);
+
+      //XmlElement FolderFile = AddXmlFile(FolderFiles, File, FileStatus);
+      //files.Add(FolderFile);
+
+      //XmlFile.Save(XmlFilePath);
+    }
+
+    public static void CreateJsonFile() {
+      string StartString = "[]";
+
+      JsonFile = JsonConvert.DeserializeObject<JArray>(StartString);
+
+      File.WriteAllText(JsonFilePath, StartString);
     }
   }
 }

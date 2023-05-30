@@ -1,4 +1,7 @@
 ﻿using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml;
@@ -39,6 +42,38 @@ namespace Lab_8 {
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
       Application.Run(new Form1());
+
+      //string FilePath = Path.Combine(Environment.CurrentDirectory, @"logs\StatusSync.json");
+
+      //string JsonContent = @File.ReadAllText(FilePath);
+
+      //JArray JsonFile = JsonConvert.DeserializeObject<JArray>(JsonContent);
+      //foreach (var item in JsonFile) {
+      //  item["path"] = "djkslqjd";
+      //  foreach(var el in item["files"]) {
+      //    el["path"] = "dsqdrrrrrr";
+      //  }
+      //}
+
+      //JObject Token = new JObject();
+      //JObject Files = new JObject();
+      //JArray arr = new JArray();
+
+
+      //Token["path"] = "djjsds";
+      //Files["path"] = "ffffff";
+      //Token["files"] = arr;
+
+
+      //JsonFile.Add(Token);
+
+      //string Result = JsonFile.ToString();
+
+      //Console.WriteLine(Result);
+
+      //File.WriteAllText(FilePath, Result);
+
+      //Console.ReadKey();
     }
   }
 }

@@ -6,6 +6,7 @@ namespace Lab_8 {
     public Form1() {
       InitializeComponent();
       Presenter.CreateXmlFile();
+      Presenter.CreateJsonFile();
     }
 
     private void Form1_Load(object sender, EventArgs e) {
