@@ -9,11 +9,9 @@ namespace Lab_8 {
   
   public static class Presenter {
     public static string XmlFilePath = Path.Combine(Environment.CurrentDirectory, @"logs\StatusSync.xml");
-    public static string JsonFilePath = @"C:\Users\vyati\source\repos\Lab_8\bin\Debug\logs\StatusSync.json";/*Path.Combine(Environment.CurrentDirectory, @"logs\StatusSync.json");*/
+    public static string JsonFilePath = Path.Combine(Environment.CurrentDirectory, @"logs\StatusSync.json");
     public static XmlDocument XmlFile;
     public static JArray JsonFile;
-    private static List<string> filesJson = new List<string>();
-    private static List<string> foldersJson = new List<string>();
     private static XmlElement session;
     private static List<XmlElement> filesXml = new List<XmlElement>();
     private static List<XmlElement> foldersXml = new List<XmlElement>();
