@@ -9,13 +9,9 @@ namespace Lab_8 {
       Presenter.CreateJsonFile();
     }
 
-    private void Form1_Load(object sender, EventArgs e) {
-
-    }
-
     private void Syncron_Click(object sender, EventArgs e) {
       if (FolderBase.Text != string.Empty && FolderSync.Text != string.Empty) {
-        if (Presenter.Accept(FolderBase.Text, FolderSync.Text)) {
+        if (Presenter.AcceptJson(FolderBase.Text, FolderSync.Text)) {
           Console.WriteLine("Синхронизация прошла успешно!");
           State.Text = "Синхронизация прошла успешно!";
         } else {
